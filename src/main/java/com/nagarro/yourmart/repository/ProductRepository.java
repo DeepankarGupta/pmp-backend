@@ -15,4 +15,5 @@ public interface ProductRepository {
 	Product changeProductStatus(int productId, int status);
 	Product addComment(int id, String comment);
 	Integer getSellerId(int productId);
+	Long getProductsCount();
 }

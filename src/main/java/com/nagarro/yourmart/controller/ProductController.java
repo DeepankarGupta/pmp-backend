@@ -1,5 +1,6 @@
 package com.nagarro.yourmart.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,10 +14,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.nagarro.yourmart.dto.ProductWithSellerResponse;
+import com.nagarro.yourmart.dto.SellerResponse;
 import com.nagarro.yourmart.entity.Category;
 import com.nagarro.yourmart.entity.Product;
+import com.nagarro.yourmart.service.CategoryService;
 import com.nagarro.yourmart.service.ProductService;
 import com.nagarro.yourmart.service.SellerService;
+import com.nagarro.yourmart.util.ModelMapperUtil;
 
 @Controller
 public class ProductController {
@@ -26,6 +31,9 @@ public class ProductController {
 
 	@Autowired
 	private SellerService sellerService;
+	
+	@Autowired
+	private CategoryService categoryService;
 
 	@RequestMapping(value = "/admin/product", method = RequestMethod.GET)
 	public String getAllProduct(ModelMap model, HttpServletRequest request,
@@ -40,7 +48,7 @@ public class ProductController {
 			@RequestParam(value = "limit", required = false, defaultValue = "10") int limit) {
 
 		HttpSession session = request.getSession(false);
-		// if (session != null && session.getAttribute("admin") != null) {
+		if (session != null && session.getAttribute("admin") != null) {
 		model.addAttribute("lastSearchValue", searchValue);
 		if (searchBy != null) {
 			String isProductCodeSelected = searchBy.equals("code") ? "selected" : " ";
@@ -83,17 +91,21 @@ public class ProductController {
 		}
 		products = productService.getAllProducts(sortBy, searchBy, searchValue, status, category, sellerId,
 				sellerCompanyName, offset, limit);
-		System.out.println(products.size());
+		List<ProductWithSellerResponse> productList = ModelMapperUtil.convertModelList(products, ProductWithSellerResponse.class);
+		for(int i=0; i<products.size(); i++) {
+			productList.get(i).setSeller(ModelMapperUtil.convertModel(products.get(0).getSeller(),SellerResponse.class));
+		}
+		
 		sellerIds = sellerService.getAllSellerIds();
 		sellerCompanyNames = sellerService.getAllSellerCompanyNames();
-		// categories = (ArrayList<Category>) categoryRepository.getAllCategory();
-		model.addAttribute("products", products);
+		categories = categoryService.getAllCategories(offset, limit);
+		model.addAttribute("products", productList);
 		model.addAttribute("sellerIds", sellerIds);
 		model.addAttribute("sellerCompanyNames", sellerCompanyNames);
 		model.addAttribute("categories", categories);
 		return "productList";
-		// }
-		// return "redirect:/admin/login";
+		}
+	 return "redirect:/admin/login";
 	}
 
 	@RequestMapping(value = "/admin/product", method = RequestMethod.POST)
@@ -110,7 +122,8 @@ public class ProductController {
 	@RequestMapping(value = "/admin/product/{productId}", method = RequestMethod.GET)
 	public String productDetailsPage(HttpServletRequest request, ModelMap model, @PathVariable("productId") int id) {
 		Product product = productService.getProductById(id);
-		model.addAttribute("product", product);
+		ProductWithSellerResponse productResponse = ModelMapperUtil.convertModel(product, ProductWithSellerResponse.class);
+		model.addAttribute("product", productResponse);
 		return "productDetails";
 	}
 

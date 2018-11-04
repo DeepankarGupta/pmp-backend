@@ -18,6 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.nagarro.yourmart.dto.ImageResponse;
 import com.nagarro.yourmart.dto.NewProductRequest;
+import com.nagarro.yourmart.dto.ProductListResponse;
+import com.nagarro.yourmart.dto.ProductResponse;
 import com.nagarro.yourmart.dto.UpdateProductRequest;
 import com.nagarro.yourmart.entity.Category;
 import com.nagarro.yourmart.entity.Image;
@@ -42,7 +44,7 @@ public class ProductRestController {
 	private ImageService imageService;
 
 	@GetMapping(path = "api/product")
-	public List<Product> getAllProducts(@RequestParam(value = "sortBy", required = false) String sortBy,
+	public ProductListResponse getAllProducts(@RequestParam(value = "sortBy", required = false) String sortBy,
 										@RequestParam(value = "searchBy", required = false) String searchBy,
 										@RequestParam(value = "searchValue", required = false) String searchValue,
 										@RequestParam(value = "status", required = false) Integer status,
@@ -52,31 +54,41 @@ public class ProductRestController {
 										@RequestHeader(value = "authentication") String token) {
 		Integer sellerIdFromToken = sellerService.getSellerIdByToken(token);
 		List<Product> products = null;
+		List<ProductResponse> productResponse = null;
+		Long productsCount = null;
+		ProductListResponse productListResponse = new ProductListResponse();
 		if(sellerIdFromToken != null) {
-			products = productService.getAllProducts(sortBy, searchBy, searchValue, status, category, sellerIdFromToken, offset, limit);			
+			products = productService.getAllProducts(sortBy, searchBy, searchValue, status, category, sellerIdFromToken, offset, limit);	
+			productResponse = ModelMapperUtil.convertModelList(products, ProductResponse.class);
+			productsCount = productService.getProductsCount();
+			productListResponse.setProducts(productResponse);
+			productListResponse.setProductsCount(productsCount);
 		}
-		return products;
+		return productListResponse;
 	}
 	
 	@GetMapping(path="api/product/{id}")
-	public Product getProductById(@PathVariable("id") int id,
+	public ProductResponse getProductById(@PathVariable("id") int id,
 								  @RequestHeader(value = "authentication") String token) {
 		
 		Product product = null;
+		ProductResponse productResponse = null;
 		Integer sellerIdFromToken = sellerService.getSellerIdByToken(token);
 		Integer sellerIdFromProduct = productService.getSellerId(id); 
 		if(sellerIdFromToken == sellerIdFromProduct ) {
 			product = productService.getProductById(id);
+			productResponse = ModelMapperUtil.convertModel(product, ProductResponse.class);
 		}
-		return product;
+		return productResponse;
 	}
 	
 	@PostMapping(path = "api/product")
-	public Product addNewProduct(@RequestBody NewProductRequest newProductRequest,
+	public ProductResponse addNewProduct(@RequestBody NewProductRequest newProductRequest,
 			@RequestHeader(value = "authentication") String token) {
 
 		Product product = null;
 		Product newProduct = null;
+		ProductResponse productResponse = null;
 		Integer sellerId = sellerService.getSellerIdByToken(token);
 		if(sellerId != null) {
 			product = ModelMapperUtil.convertModel(newProductRequest, Product.class);
@@ -87,15 +99,18 @@ public class ProductRestController {
 			product.setSeller(seller);
 			product.setCategory(category);
 			newProduct = productService.addNewProduct(product);
+			productResponse = ModelMapperUtil.convertModel(newProduct, ProductResponse.class);
 		}
-		return newProduct;
+		return productResponse;
 	}
 
 	@PutMapping(path="api/product/{id}")
-	public Product updateProduct(@RequestBody UpdateProductRequest updateProductRequest,
+	public ProductResponse updateProduct(@RequestBody UpdateProductRequest updateProductRequest,
 				 				 @RequestHeader(value="authentication") String token,
 				 				 @PathVariable("id") int id) {
+		
 		Product updatedProductResponse = null;
+		ProductResponse productResponse = null;
 		Integer sellerIdFromToken = sellerService.getSellerIdByToken(token);
 		Integer sellerIdFromProduct = productService.getSellerId(id); 
 		if(sellerIdFromToken == sellerIdFromProduct ) {
@@ -109,20 +124,23 @@ public class ProductRestController {
 			category.setId(updateProductRequest.getCategoryId());
 			updatedProduct.setCategory(category);
 			updatedProductResponse = productService.updateProduct(updatedProduct);
+			productResponse = ModelMapperUtil.convertModel(updatedProductResponse, ProductResponse.class);
 		}
-		return updatedProductResponse;
+		return productResponse;
 	}
 	
 	@DeleteMapping(path="api/product/{id}")
-	public Product deleteProduct(@PathVariable("id") int id,
+	public ProductResponse deleteProduct(@PathVariable("id") int id,
 							  	 @RequestHeader(value="authentication") String token) {
 		Product product = null;
+		ProductResponse productResponse = null;
 		Integer sellerIdFromToken = sellerService.getSellerIdByToken(token);
 		Integer sellerIdFromProduct = productService.getSellerId(id); 
 		if(sellerIdFromToken == sellerIdFromProduct ) {
 			product = productService.deleteProduct(id);
+			productResponse = ModelMapperUtil.convertModel(product, ProductResponse.class);
 		}
-		return product;
+		return productResponse;
 	}
 	
 	@PostMapping(path = "api/product/{productId}/image")

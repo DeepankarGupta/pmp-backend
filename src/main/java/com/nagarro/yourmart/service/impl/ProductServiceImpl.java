@@ -65,4 +65,9 @@ public class ProductServiceImpl implements ProductService {
 		return productRepository.getSellerId(productId);
 	}
 
+	@Override
+	public Long getProductsCount() {
+		return productRepository.getProductsCount();
+	}
+
 }

@@ -230,4 +230,18 @@ public class HibernateProductRepositoryImpl implements ProductRepository {
 		return sellerId;
 	}
 
+	@Override
+	public Long getProductsCount() {
+		Long productsCount = null;
+		try (Session session = entityManagerFactory.unwrap(SessionFactory.class).openSession()) {
+			CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+			CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
+			Root<Product> root = criteriaQuery.from(Product.class);
+			criteriaQuery.multiselect(criteriaBuilder.count(root.get("id")));
+			Query<Long> query = session.createQuery(criteriaQuery);
+			productsCount = query.getSingleResult();
+		}
+		return productsCount;
+	}
+
 }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.nagarro.yourmart.dto.CategoryCountResponse;
 import com.nagarro.yourmart.entity.Category;
 import com.nagarro.yourmart.service.CategoryService;
 
@@ -25,8 +26,8 @@ public class CategoriesController {
 								   @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
 								   @RequestParam(value = "limit", required = false, defaultValue = "10") int limit){
 		
-		List<Category> categories = null;
-		categories = categoryService.getAllCategories(offset, limit);
+		List<CategoryCountResponse> categories = null;
+		categories = categoryService.getAllCategoriesWithCount(offset, limit);
 		model.addAttribute("categories",categories);
 		return "categoryList";
 	}

@@ -37,7 +37,6 @@ public class HibernateImageRepositoryImpl implements ImageRepository {
 	public List<Image> getAllProductImages(int productId) {
 		List<Image> images = null;
 		try (Session session = entityManagerFactory.unwrap(SessionFactory.class).openSession()) {
-			
 			CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
 			CriteriaQuery<Image> criteriaQuery = criteriaBuilder.createQuery(Image.class);
 			Root<Image> root = criteriaQuery.from(Image.class);

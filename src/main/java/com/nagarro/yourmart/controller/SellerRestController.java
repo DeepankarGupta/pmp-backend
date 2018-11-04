@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nagarro.yourmart.dto.SellerLoginRequest;
 import com.nagarro.yourmart.dto.SellerLoginResponse;
+import com.nagarro.yourmart.dto.SellerResponse;
 import com.nagarro.yourmart.dto.SellerStatusChangeRequest;
 import com.nagarro.yourmart.entity.Seller;
 import com.nagarro.yourmart.service.SellerService;
@@ -24,11 +25,6 @@ public class SellerRestController {
 
 	@Autowired
 	private SellerService sellerService;
-	
-	@GetMapping(path="api/seller")
-	public List<Seller> getAllSellers() {
-		return sellerService.getAllSellers("status", "companyName", "nag", null , 2, 10);
-	}
 	
 	@PostMapping(path="api/seller/register")
 	public void registerSeller(@RequestBody Seller seller) {
@@ -42,10 +38,10 @@ public class SellerRestController {
 		return sellerLoginResponse;
 	}  
 	
-	@GetMapping(path="api/seller/{id}")
-	public Seller getSellerById(@PathVariable("id") int id) {
-		return sellerService.getSellerById(id);
-	}
+//	@GetMapping(path="api/seller/{id}")
+//	public Seller getSellerById(@PathVariable("id") int id) {
+//		return sellerService.getSellerById(id);
+//	}
 	
 	@GetMapping(path="api/seller/ids")
 	public List<Integer> getSellerIds() {
@@ -58,8 +54,10 @@ public class SellerRestController {
 	}
 	
 	@PostMapping(path="api/seller/status")
-	public Seller changeStatus(@RequestBody SellerStatusChangeRequest sellerStatusChangeRequest) {
-		return sellerService.changeSellerStatus(sellerStatusChangeRequest.getId(), sellerStatusChangeRequest.getStatus());
+	public SellerResponse changeStatus(@RequestBody SellerStatusChangeRequest sellerStatusChangeRequest) {
+		Seller seller =  sellerService.changeSellerStatus(sellerStatusChangeRequest.getId(), sellerStatusChangeRequest.getStatus());
+		SellerResponse sellerResponse = ModelMapperUtil.convertModel(seller, SellerResponse.class);
+		return sellerResponse;
 	}
 	
 }
